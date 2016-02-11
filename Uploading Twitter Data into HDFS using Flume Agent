@@ -1,0 +1,94 @@
+// Uploading Twitter Data into HDFS using Flume Agent //
+
+Step 1 :-
+		-->You can go to https://apps.twitter.com/ to create a twitter application
+		-->click on create a new application button
+		-->Fill all details and accept the Developer Agreement when finish. Click on the Create your Twitter application button
+		-->click on Keys and Access Tokens tab
+		-->Then Click on Create my access token. 
+		-->Then Click on Test OAuth button.
+		-->Copy the below details.
+			1)Consumer key: *
+			2)Consumer secret: *
+			3)Access token:
+			4)Access token secret:
+Step 2:- Foramt & start hadoop
+	
+		-->format hadoop:- bin/hadoop namenode -format
+		-->start hadoop:- start-dfs.sh
+		-->create a new directory
+Step 3:- Create Flume configure file
+	
+	-->name is:-twitter_data.conf
+			
+		TwitterAgent.sources = Twitter
+		TwitterAgent.channels = MemChannel
+		TwitterAgent.sinks = HDFS
+ 
+		TwitterAgent.sources.Twitter.type = com.cloudera.flume.source.TwitterSource
+		TwitterAgent.sources.Twitter.channels = MemChannel
+		TwitterAgent.sources.Twitter.consumerKey = xVskwaH0WBAliDIhKurYWb8BL
+		TwitterAgent.sources.Twitter.consumerSecret = f0zKNiGo3phrHuXTyak02M0p0ZxGPfrGQg59l67HlECRhsayAQ
+                TwitterAgent.sources.Twitter.accessToken = 4887974916-tuE4565jTH5tK49kjk3j1i8MENOSFnb0i2lM245
+		TwitterAgent.sources.Twitter.accessTokenSecret = b5r9ZabubWDIaqVxWrPapL8McXLagzK0mLbBkEC8Qbsjz
+ 
+		TwitterAgent.sources.Twitter.keywords = hadoop, big data, analytics, bigdata, cloudera, data science, data scientiest, business intelligence, mapreduce, data warehouse, data warehousing, mahout, hbase, nosql, newsql, businessintelligence, cloudcomputing
+ 
+		TwitterAgent.sinks.HDFS.channel = MemChannel
+		TwitterAgent.sinks.HDFS.type = hdfs
+		TwitterAgent.sinks.HDFS.hdfs.path = hdfs://localhost:9000/user/vm4learning/tweet/
+		TwitterAgent.sinks.HDFS.hdfs.fileType = DataStream
+		TwitterAgent.sinks.HDFS.hdfs.writeFormat = Text
+		TwitterAgent.sinks.HDFS.hdfs.batchSize = 1000
+		TwitterAgent.sinks.HDFS.hdfs.rollSize = 0
+		TwitterAgent.sinks.HDFS.hdfs.rollCount = 10000
+ 
+		TwitterAgent.channels.MemChannel.type = memory
+		TwitterAgent.channels.MemChannel.capacity = 10000
+		TwitterAgent.channels.MemChannel.transactionCapacity = 100
+
+	-->put this configuration file into the:-  /home/vm4learning/Installations/apache-flume-1.4.0-bin/conf
+	-->then go to:- cd $FLUME_HOME
+	-->then run:- bin/flume-ng agent --conf ./conf/ -f conf/twitter_data.conf -Dflume.root.logger=DEBUG,console -n TwitterAgent
+	-->Wait few minutes.......
+Step 4:- See your twitter data in browser(It is a json format)
+Step 5:- If you want to analyze this data. You can go with hive.
+		
+		--> Start a new terminal
+		--> cd $HIVE_HOME
+		--> bin/hive --service metastore &
+		-->Create the tweets table
+	
+			CREATE EXTERNAL TABLE tweets (
+   id BIGINT,
+   created_at STRING,
+   source STRING,
+   favorited BOOLEAN,
+   retweet_count INT,
+   retweeted_status STRUCT<
+      text:STRING,
+      user:STRUCT<screen_name:STRING,name:STRING>>,
+   entities STRUCT<
+      urls:ARRAY<STRUCT<expanded_url:STRING>>,
+      user_mentions:ARRAY<STRUCT<screen_name:STRING,name:STRING>>,
+      hashtags:ARRAY<STRUCT<text:STRING>>>,
+   text STRING,
+   user STRUCT<
+      screen_name:STRING,
+      name:STRING,
+      friends_count:INT,
+      followers_count:INT,
+      statuses_count:INT,
+      verified:BOOLEAN,
+      utc_offset:INT,
+      time_zone:STRING>,
+   in_reply_to_screen_name STRING
+) 
+ROW FORMAT SERDE 'com.cloudera.hive.serde.JSONSerDe'
+LOCATION '/user/flume/tweets';
+
+		-->Now, enjoy with this data. & fire query as per your requirements............
+
+Step 6:- Thanks, By......):-
+
+
